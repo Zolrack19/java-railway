@@ -1,20 +1,29 @@
-FROM eclipse-temurin:21-jdk as build
+FROM maven:3.8.5-openjdk-17 as build
+COPY . .
+RUN mvn clean package -DskipTests
 
-COPY . /app
-WORKDIR /app
+FROM openjdk:17.0.1-jdk-slim
+COPY --from=build /target/demo-0.0.1-SNAPSHOT.jar demo.jar
+EXPOSE 8080
+ENTRYPOINT ["java", "-jar", "demo.jar"]
 
-RUN chmod +x mvnw
-RUN ./mvnw package -DskipTests
-RUN mv -f target/*.jar app.jar
+# FROM eclipse-temurin:21-jdk as build
 
-FROM eclipse-temurin:21-jre
+# COPY . /app
+# WORKDIR /app
 
-ARG PORT
-ENV PORT=${PORT}
+# RUN chmod +x mvnw
+# RUN ./mvnw package -DskipTests
+# RUN mv -f target/*.jar app.jar
 
-COPY --from=build /app/app.jar .
+# FROM eclipse-temurin:21-jre
 
-RUN useradd runtime
-USER runtime
+# ARG PORT
+# ENV PORT=${PORT}
 
-ENTRYPOINT ["java", "-Dserver.port=${PORT}", "-jar", "app.jar"]
+# COPY --from=build /app/app.jar .
+
+# RUN useradd runtime
+# USER runtime
+
+# ENTRYPOINT ["java", "-Dserver.port=${PORT}", "-jar", "app.jar"]
